@@ -37,8 +37,6 @@ LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7);
 #define LCD_ROWS (4)
 #define BACKLIGHT_PIN     3
 
-#define MQTT_SERVER "192.168.1.249"
-
 #include "wifisetup.h"
 
 const char* ssid = WIFI_SSID;
