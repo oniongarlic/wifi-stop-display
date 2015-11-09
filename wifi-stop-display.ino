@@ -140,8 +140,10 @@ void printTimeAt(int c, int r, int t) {
 void callback(char* topic, byte* payload, unsigned int length) {
   String t(topic);
 
+#if 0
   Serial.println(t);
   Serial.println((char *)payload);
+#endif
   
   if (length>2048) {
     Serial.println("OSP!");
@@ -149,7 +151,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   
   payload[length] = '\0';
-  String d=(char *)payload;
+  //String d=(char *)payload;
   
   // siri/turku/sm/<stop-id>/<offset>/<data>
   //               ^
@@ -235,10 +237,31 @@ void handleRoot() {
 }
 
 void handleTime() {
+  if (server.hasArg("h")==true) {
+    tmElements_t tm;
+    tm.Hour = server.arg("h").toInt();
+    tm.Minute = server.arg("mi").toInt();
+    tm.Second = 0;
+    tm.Day = server.arg("h").toInt();
+    tm.Month = server.arg("mo").toInt();
+    tm.Year = server.arg("y").toInt();
+
+    if (RTC.write(tm))
+      server.send(200, "text/html", "<h1>Error</h1>Time set");
+    else
+      server.send(200, "text/html", "<h1>Error</h1>Failed to set time");
+    return;
+  }
+
   String msg(hdr);
-  msg += "<h1>KotiBussi V2 - Config</h1><p>";
+  msg += "<h1>Time</h1><p>";
   msg +="<form method='post' action='/time'><label>Time:</label>";
-  msg += "<input name='stopid' type='text' value='' required='required' placeholder='hh:mm:ss dd-mm-yyyy' /><br/><input type='submit' value='Set' />";
+  msg += "<input name='h' type='text' value='' required='required' size='2' placeholder='hh' />:";
+  msg += "<input name='mi' type='text' value='' required='required' size='2' placeholder='mm' /> ";
+  msg += "<input name='d' type='text' value='' required='required' size='2' placeholder='dd' />-";
+  msg += "<input name='mo' type='text' value='' required='required' size='2' placeholder='mm' />-";
+  msg += "<input name='y' type='text' value='' required='required' size='4' placeholder='yyyy' /> ";
+  msg += "<br/><input type='submit' value='Set' />";
   msg += "</form></p>";
   msg += ftr;
   server.send(200, "text/html", msg);
@@ -288,6 +311,7 @@ void subscribeCurrentStop()
   }
 
   dataCount=0;
+  refresh=true;
  
   setSubscribeTopic();
   ctopic.toCharArray(tbuf, 64);
