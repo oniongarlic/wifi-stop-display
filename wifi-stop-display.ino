@@ -65,8 +65,6 @@ struct StationData {
 int dataCount=0;
 StationData data[DATA_MAX];
 
-StaticJsonBuffer<2048> jsonBuffer;
-
 bool refresh=true;
 
 MDNSResponder mdns;
@@ -182,6 +180,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 #endif
 
   // Our data is an array of objects, in order
+  StaticJsonBuffer<2048> jsonBuffer;
   JsonArray& root = jsonBuffer.parseArray((char *)payload);
 
   if (!root.success()) {
