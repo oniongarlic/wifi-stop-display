@@ -46,9 +46,6 @@ String ctopic;
 String area="Turku";
 String stop_id="1170";
 
-// temp buffer for string to char conversions
-char tbuf[64];
-
 const char* hdr="<html><head><title>KotiBussi V2</title></head><body>";
 const char* ftr="</body></html>";
 
@@ -224,18 +221,18 @@ void updateETA()
 }
 
 void handleRoot() {
-  String msg(hdr);
-  msg += "<h1>KotiBussi V2 - Config</h1><p>";
-  msg +="<form method='post' action='/stop'><label>Stop ID:</label>";
-  msg += "<input name='stopid' type='text' value='' required='required' placeholder='Enter a stop id' /><br/><input type='submit' value='Set' />";
-  msg += "</form></p><h3>Current config:</h3><p>";
-  msg += "Area: " + area + "<br/>Stop: "+stop_id+"</p>";
-  msg += "Device ID:"+ESP.getChipId();
-  msg += ftr;
-  server.send(200, "text/html", msg);
+  server.send(200, "text/html", hdr);
+  server.sendContent("<h1>KotiBussi V2 - Config</h1><p>");
+  server.sendContent("<form method='post' action='/stop'><label>Stop ID:</label>");
+  server.sendContent("<input name='stopid' type='text' value='' required='required' placeholder='Enter a stop id' /><br/><input type='submit' value='Set' />");
+  server.sendContent("</form></p><h3>Current config:</h3><p>");
+  server.sendContent("Area: " + area + "<br/>Stop: "+stop_id+"</p>");
+  server.sendContent("Device ID:"+ESP.getChipId());
+  server.sendContent(ftr);
 }
 
-void handleTime() {
+void handleTime()
+{
   if (server.hasArg("h")==true) {
     tmElements_t tm;
     tm.Hour = server.arg("h").toInt();
@@ -252,18 +249,17 @@ void handleTime() {
     return;
   }
 
-  String msg(hdr);
-  msg += "<h1>Time</h1><p>";
-  msg +="<form method='post' action='/time'><label>Time:</label>";
-  msg += "<input name='h' type='text' value='' required='required' size='2' placeholder='hh' />:";
-  msg += "<input name='mi' type='text' value='' required='required' size='2' placeholder='mm' /> ";
-  msg += "<input name='d' type='text' value='' required='required' size='2' placeholder='dd' />-";
-  msg += "<input name='mo' type='text' value='' required='required' size='2' placeholder='mm' />-";
-  msg += "<input name='y' type='text' value='' required='required' size='4' placeholder='yyyy' /> ";
-  msg += "<br/><input type='submit' value='Set' />";
-  msg += "</form></p>";
-  msg += ftr;
-  server.send(200, "text/html", msg);
+  server.send(200, "text/html", hdr);
+  server.sendContent( "<h1>Time</h1><p>");
+  server.sendContent("<form method='post' action='/time'><label>Time:</label>");
+  server.sendContent("<input name='h' type='text' value='' required='required' size='2' placeholder='hh' />:");
+  server.sendContent("<input name='mi' type='text' value='' required='required' size='2' placeholder='mm' /> ");
+  server.sendContent("<input name='d' type='text' value='' required='required' size='2' placeholder='dd' />-");
+  server.sendContent("<input name='mo' type='text' value='' required='required' size='2' placeholder='mm' />-");
+  server.sendContent("<input name='y' type='text' value='' required='required' size='4' placeholder='yyyy' /> ");
+  server.sendContent("<br/><input type='submit' value='Set' />");
+  server.sendContent("</form></p>");
+  server.sendContent(ftr);
 }
 
 void handleSetStop()
@@ -305,16 +301,14 @@ void setSubscribeTopic()
 void subscribeCurrentStop()
 {
   if (ctopic.length()>0) {
-    ctopic.toCharArray(tbuf, 64);
-    client.unsubscribe(tbuf);
+    client.unsubscribe(ctopic.c_str());
   }
 
   dataCount=0;
   refresh=true;
  
   setSubscribeTopic();
-  ctopic.toCharArray(tbuf, 64);
-  client.subscribe(tbuf);
+  client.subscribe(ctopic.c_str());
 }
 
 void connectWiFi()
@@ -417,11 +411,13 @@ int mqttreconnect() {
   }
 }
 
-void mqttloop(void) {
+void networkRefresh(void) {
+  server.handleClient();
   if (!client.connected()) {
     mqttreconnect();
   }
   client.loop();
+  mdns.update();
 }
 
 void printRTC()
@@ -453,8 +449,7 @@ void blink()
 }
 
 void loop(void){
-  server.handleClient();
-  mqttloop();
+  networkRefresh();
   if (refresh==true) {
     updateLines();
     refresh=false;
