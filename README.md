@@ -19,4 +19,7 @@ pushed to the display. Currently the data is JSON, but might be more size optimi
 
 The needed backend is available at https://github.com/oniongarlic/php-siri
 
+## PubSubClient patch
 
+The max MQTT data size is hard coded to 512 bytes in PubSubClient. This needs to be manually fixed to a
+much larger size as the JSON data is pretty verbose and does not fit in 512 bytes. 2048 works.
