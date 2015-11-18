@@ -39,6 +39,16 @@ LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7);
 
 #include "wifisetup.h"
 
+#ifdef USE_CDN
+#define JQUERY_JS "<script src=\"//code.jquery.com/jquery-1.11.3.min.js\"></script>"
+#define BOOTSTRAP_CSS "<link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css\" integrity=\"sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==\" crossorigin=\"anonymous\">"
+#define BOOTSTRAP_JS "<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js\" integrity=\"sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==\" crossorigin=\"anonymous\"></script>"
+#else 
+#define JQUERY_JS "http://api.tal.org/jquery/2.1.4/jquery-2.1.4.min.js"
+#define BOOTSTRAP_CSS "<link rel=\"stylesheet\" href=\"http://api.tal.org/bootstrap/3.3.5/css/bootstrap-theme.min.css\">"
+#define BOOTSTRAP_JS "<script src=\"http://api.tal.org/bootstrap/3.3.5/js/bootstrap.min.js\"></script>"
+#endif
+
 const char* ssid = WIFI_SSID;
 const char* password = WIFI_KEY;
 
@@ -46,7 +56,9 @@ String ctopic;
 String area="Turku";
 String stop_id="1170";
 
-const char* hdr="<html><head><title>KotiBussi V2</title></head><body>";
+const char* hdr1="<html><head><meta name=\"viewport\" content=\"maximum-scale=1,width=device-width,initial-scale=1,user-scalable=0\"><title>KotiBussi V2</title>";
+const char* hdr2="</head><body>";
+const char* js=JQUERY_JS BOOTSTRAP_CSS BOOTSTRAP_JS;
 const char* ftr="</body></html>";
 
 // Max amount of data to store
@@ -220,8 +232,14 @@ void updateETA()
   }
 }
 
+void sendHeader(int c=200) {
+  server.send(c, "text/html", hdr1);
+  server.sendContent(js);
+  server.sendContent(hdr2);
+}
+
 void handleRoot() {
-  server.send(200, "text/html", hdr);
+  sendHeader();
   server.sendContent("<h1>KotiBussi V2 - Config</h1><p>");
   server.sendContent("<form method='post' action='/stop'><label>Stop ID:</label>");
   server.sendContent("<input name='stopid' type='text' value='' required='required' placeholder='Enter a stop id' /><br/><input type='submit' value='Set' />");
@@ -249,7 +267,7 @@ void handleTime()
     return;
   }
 
-  server.send(200, "text/html", hdr);
+  sendHeader();
   server.sendContent( "<h1>Time</h1><p>");
   server.sendContent("<form method='post' action='/time'><label>Time:</label>");
   server.sendContent("<input name='h' type='text' value='' required='required' size='2' placeholder='hh' />:");
@@ -272,13 +290,12 @@ void handleSetStop()
   stop_id=server.arg("stopid");
   // XXX validate
   subscribeCurrentStop();
+
+  sendHeader();
   
-  String msg(hdr);
-  msg += "<h1>KotiBussi V2 - Config</h1><p>";
-  msg += "Stop set to: "+stop_id;
-  msg += "<br/><a href='/'>Back</a>";
-  msg += ftr;
-  server.send(200, "text/html", msg);
+  server.sendContent("<h1>KotiBussi V2 - Config</h1><p>Stop set to: "+stop_id);
+  server.sendContent("<br/><a href='/'>Back</a>");
+  server.sendContent(ftr);
   lcd.clear();
   lcd.print("New stop: ");
   lcd.print(stop_id);
