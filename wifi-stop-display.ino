@@ -39,6 +39,7 @@ LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7);
 
 #include "wifisetup.h"
 
+// Web interface data
 #ifdef USE_CDN
 #define JQUERY_JS "<script src=\"//code.jquery.com/jquery-1.11.3.min.js\"></script>"
 #define BOOTSTRAP_CSS "<link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css\" integrity=\"sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==\" crossorigin=\"anonymous\">"
@@ -49,17 +50,19 @@ LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7);
 #define BOOTSTRAP_JS "<script src=\"http://api.tal.org/bootstrap/3.3.5/js/bootstrap.min.js\"></script>"
 #endif
 
-const char* ssid = WIFI_SSID;
-const char* password = WIFI_KEY;
-
-String ctopic;
-String area="Turku";
-String stop_id="1170";
-
 const char* hdr1="<html><head><meta name=\"viewport\" content=\"maximum-scale=1,width=device-width,initial-scale=1,user-scalable=0\"><title>KotiBussi V2</title>";
 const char* hdr2="</head><body>";
 const char* js=JQUERY_JS BOOTSTRAP_CSS BOOTSTRAP_JS;
 const char* ftr="</body></html>";
+
+// WiFi configuration
+const char* ssid = WIFI_SSID;
+const char* password = WIFI_KEY;
+
+// Current stop area and id information
+String ctopic;
+String area="Turku";
+String stop_id="1170";
 
 // Max amount of data to store
 #define DATA_MAX (8)
